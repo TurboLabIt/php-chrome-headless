@@ -92,7 +92,7 @@ class ChromeHeadless
 
 
 
-    public function browseToPdf(string $url, string $pdfPath) : self
+    public function browseToPdf(string $url, string $pdfPath, bool $printBackground = true) : self
     {
         if( file_exists($pdfPath) && time() - filemtime($pdfPath) < $this->cacheTtl ) {
             return $this;
@@ -111,7 +111,7 @@ class ChromeHeadless
             return $this;
         }
 
-        $this->page->pdf(['printBackground' => false])->saveToFile($pdfPath);
+        $this->page->pdf(['printBackground' => $printBackground])->saveToFile($pdfPath);
 
         return $this;
     }
