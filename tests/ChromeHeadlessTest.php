@@ -27,6 +27,8 @@ class ChromeHeadlessTest extends TestCase
                 ->browse(static::TEST_URL);
 
         $html = $chrome->getHtml();
+        // this is just for testing!
+        $html = html_entity_decode($html);
         $this->assertStringContainsString('<h2>IT WORKS</h2>', $html);
     }
 }
