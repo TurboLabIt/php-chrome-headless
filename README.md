@@ -1,7 +1,8 @@
 # php-chrome-headless
-A simple wrapper to run Chrome Headless via PHP
+A simple wrapper to run [chrome-php/chrome](https://github.com/chrome-php/chrome) with caching and logging.
 
-## 💿 1. Install Chrome Headless
+
+## 💿 1. Install Chrome
 
 ````bash
 sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/webstackup/master/script/chrome/install.sh?$(date +%s) | sudo bash
@@ -17,7 +18,6 @@ composer require turbolabit/php-chrome-headless:dev-main
 ````
 
 
-
 ## 🕸 3. Scrape a page
 
 ````php
@@ -26,7 +26,7 @@ composer require turbolabit/php-chrome-headless:dev-main
 ?>
 ````
 
-See: []()
+See: [ChromeHeadlessTest](https://github.com/TurboLabIt/php-chrome-headless/blob/main/tests/ChromeHeadlessTest.php#L33)
 
 
 ## 🧪 Test it
