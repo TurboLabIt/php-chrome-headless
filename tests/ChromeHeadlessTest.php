@@ -45,4 +45,17 @@ class ChromeHeadlessTest extends TestCase
         $this->assertTrue($chrome->isResponseError());
         return $chrome;
     }
+
+
+    public function testPdf()
+    {
+        $pdfFilePath = '/tmp/ChromeHeadless-testPdf.pdf';
+        if( file_exists($pdfFilePath) ) {
+            unlink($pdfFilePath);
+        }
+
+        $this->assertFileDoesNotExist($pdfFilePath);
+        $this->testCreateInstance()->browseToPdf(static::TEST_URL, $pdfFilePath);
+        $this->assertFileExists($pdfFilePath);
+    }
 }

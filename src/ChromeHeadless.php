@@ -91,6 +91,32 @@ class ChromeHeadless
     }
 
 
+
+    public function browseToPdf(string $url, string $pdfPath) : self
+    {
+        if( file_exists($pdfPath) && time() - filemtime($pdfPath) < $this->cacheTtl ) {
+            return $this;
+        }
+
+        if( empty($this->cache) ) {
+
+            $this->browse($url);
+
+        } else {
+
+            $this->browseAndCache($url);
+        }
+
+        if( $this->isResponseError() ) {
+            return $this;
+        }
+
+        $this->page->pdf(['printBackground' => false])->saveToFile($pdfPath);
+
+        return $this;
+    }
+
+
     public function getPage(): Page
     {
         return $this->page;
