@@ -4,6 +4,9 @@
  */
 namespace TurboLabIt\ChromeHeadless;
 
+use HeadlessChromium\Browser;
+use HeadlessChromium\BrowserFactory;
+use HeadlessChromium\Page;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Psr\Log\LoggerInterface;
@@ -11,21 +14,25 @@ use Psr\Log\LoggerInterface;
 
 class ChromeHeadless
 {
-    protected string $chromeCmd;
     protected ?LoggerInterface $logger;
     protected ?AdapterInterface $cache;
     protected int $cacheTtl;
 
-    protected string $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36';
+    protected Browser $browser;
 
-    protected string $retVal    = '';
-    protected string $html      = '';
-    protected int $statusCode   = -1;
+    protected Page $page;
+    protected int $statusCode = -1;
+    protected string $statusText = '';
 
 
-    public function __construct(?string $chromeCmd = null, ?LoggerInterface $logger = null, ?AdapterInterface $cache = null, ?int $cacheTtl = null)
+    public function __construct(?BrowserFactory $browserFactory = null, string $cmdName = 'google-chrome', ?LoggerInterface $logger = null, ?AdapterInterface $cache = null, ?int $cacheTtl = null)
     {
-        $this->chromeCmd    = $chromeCmd === null ?  '/usr/bin/google-chrome' : $chromeCmd;
+        $browserFactory     = $browserFactory ?? (new BrowserFactory($cmdName));
+        $this->browser      = $browserFactory->createBrowser([
+            'windowSize'                => [1920, 1000],
+            'ignoreCertificateErrors'   => true,
+            'userAgent'                 => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.34 Safari/537.36'
+        ]);
         $this->logger       = $logger;
         $this->cache        = $cache;
         $this->cacheTtl     = $cacheTtl === null ? 60 * 60 : $cacheTtl;
@@ -43,26 +50,14 @@ class ChromeHeadless
             throw new ChromeHeadlessException($message);
         }
 
-        $cacheKey = md5($url);
-        $arrResponse =
-            $this->cache->get($cacheKey, function (ItemInterface $item) use($url) {
+        $cacheKey = "TurboLabIt_ChromeHeadless_Url_" . md5($url);
+        $this->cache->get($cacheKey, function (ItemInterface $item) use($url) {
 
-                $this->log("browseAndCache", "Page wasn't cached, running a live request now", $url);
-                $this->browse($url);
-                $code = $this->getStatusCode();
-                $this->log("browseAndCache", "Request done", $url, $code);
-
-                $item->expiresAfter($this->cacheTtl);
-                return [
-                    "retVal"        => $this->getRetVal(),
-                    "html"          => $this->getHtml(),
-                    "statusCode"    => $this->getStatusCode()
-                ];
+            $this->log("browseAndCache", "Page wasn't cached, running a live request now", $url);
+            $this->browse($url);
+            $this->log("browseAndCache", "Back to cache management", $url);
+            $item->expiresAfter($this->cacheTtl);
         });
-
-        $this->retVal       = $arrResponse["retVal"];
-        $this->html         = $arrResponse["html"];
-        $this->statusCode   = $arrResponse["statusCode"];
 
         return $this;
     }
@@ -70,43 +65,65 @@ class ChromeHeadless
 
     public function browse(string $url) : self
     {
-        $this->log("browse", "Start", $url);
+        $this->log("browse", "Ready to browse with Chrome Headless", $url);
+        $this->page = $this->browser->createPage();
 
-        $chromeCmd  = $this->chromeCmd . " --headless --user-agent='" . $this->userAgent . "' --dump-dom '" . $url . "'";
-        $this->log("browse", "Ready to browse with Chrome Headless. Command is: ##" . $chromeCmd . "##", $url);
+        // https://github.com/chrome-php/chrome/issues/41#issuecomment-447047235
+        $this->page->getSession()->once("method:Network.responseReceived",
+            function($params) {
+                $this->statusCode   = $params["response"]["status"];
+                $this->statusText   = $params["response"]["statusText"];
+            }
+        );
 
-        $arrOutput = [];
-        $this->retVal = exec($chromeCmd, $arrOutput);
-        $this->html   = implode(PHP_EOL, $arrOutput);
+        $this->page->navigate($url)->waitForNavigation();
 
-        if( empty($this->html) ) {
+        if( $this->isResponseError() ) {
 
-            $this->log("browse", "Fetch KO (empty HTML)", $url);
+            $this->log("browse", "Browsing KO: ##" . $this->statusText . "##", $url, $this->statusCode);
 
         } else {
 
-            $this->log("browse", "Fetch OK (got some HTML)", $url);
+            $this->log("browse", "Browsing OK", $url, $this->statusCode);
         }
 
         return $this;
     }
 
 
-    public function getRetVal(): string
+    public function getPage(): Page
     {
-        return $this->retVal;
+        return $this->page;
     }
 
 
-    public function getHtml(): string
+    public function selectNode(string $selector)
     {
-        return $this->html;
+        return $this->page->dom()->querySelector($selector);
     }
 
 
-    public function getStatusCode(): int
+    public function selectNodes(string $selector)
+    {
+        return $this->page->dom()->querySelectorAll($selector);
+    }
+
+
+    public function getStatusCode() : int
     {
         return $this->statusCode;
+    }
+
+
+    public function getStatusText() : string
+    {
+        return $this->statusText;
+    }
+
+
+    public function isResponseError() : bool
+    {
+        return $this->statusCode >= 400;
     }
 
 

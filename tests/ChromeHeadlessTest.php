@@ -8,27 +8,41 @@ use TurboLabIt\Encryptor\Encryptor;
 
 class ChromeHeadlessTest extends TestCase
 {
-    const TEST_URL = 'https://raw.githubusercontent.com/TurboLabIt/php-chrome-headless/main/tests/fetchable.html';
+    const TEST_URL = 'https://turbolabit.github.io/html-pages/fetchable.html';
 
 
-    protected function testCreateInstance()
+    public function testCreateInstance()
     {
         $chrome = new ChromeHeadless();
-        $this->assertNotEmpty($chrome);
-
+        $this->assertInstanceOf('TurboLabIt\ChromeHeadless\ChromeHeadless', $chrome);
         return $chrome;
     }
 
 
-    public function testUrl()
+    public function testBrowse()
     {
-        $chrome =
-            $this->testCreateInstance()
-                ->browse(static::TEST_URL);
+        $chrome = $this->testCreateInstance()->browse(static::TEST_URL);
+        $this->assertInstanceOf('TurboLabIt\ChromeHeadless\ChromeHeadless', $chrome);
+        $this->assertNotTrue($chrome->isResponseError());
+        return $chrome;
+    }
 
-        $html = $chrome->getHtml();
-        // this is just for testing!
-        $html = html_entity_decode($html);
-        $this->assertStringContainsString('<h2>IT WORKS</h2>', $html);
+
+    public function testSelector()
+    {
+        $chrome = $this->testBrowse();
+        $text = $chrome->selectNode('h2')->getText();
+        $this->assertEquals('IT WORKS', $text);
+        $this->assertNotTrue($chrome->isResponseError());
+    }
+
+
+    public function test404()
+    {
+        $url = substr(static::TEST_URL, 0, -10);
+        $chrome = $this->testCreateInstance()->browse($url);
+        $this->assertInstanceOf('TurboLabIt\ChromeHeadless\ChromeHeadless', $chrome);
+        $this->assertTrue($chrome->isResponseError());
+        return $chrome;
     }
 }
