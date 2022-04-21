@@ -24,9 +24,16 @@ class ChromeHeadless
             "ttl"   => 60 * 60
         ],
         "pdf"       => [
-            "outDirFullPath"    => "var/pdf/",
+            "outDirFullPath"    => "/tmp/",
             "autoext"           => true,
-            "printBackground"   => true,
+            "lastPdfPath"       => '',
+            "browser"           => [
+                "printBackground"   => true,
+                "marginTop"         => 0,
+                "marginBottom"      => 0,
+                "marginLeft"        => 0,
+                "marginRight"       => 0
+            ]
         ]
     ];
     protected Browser $browser;
@@ -63,13 +70,19 @@ class ChromeHeadless
         }
 
         $cacheKey = "TurboLabIt_ChromeHeadless_Url_" . md5($url);
-        $this->cache->get($cacheKey, function (ItemInterface $item) use($url) {
+        $chrome = $this->cache->get($cacheKey, function (ItemInterface $item) use($url) {
 
             $this->log("browseAndCache", "Page wasn't cached, running a live request now", $url);
             $this->browse($url);
             $this->log("browseAndCache", "Back to cache management", $url);
             $item->expiresAfter($this->arrConfig["cache"]["ttl"]);
+            return $this;
         });
+
+        $this->browser      = $chrome->getBrowser();
+        $this->page         = $chrome->getPage();
+        $this->statusCode   = $chrome->getStatusCode();
+        $this->statusText   = $chrome->getStatusText();
 
         return $this;
     }
@@ -114,6 +127,7 @@ class ChromeHeadless
         }
 
         if( file_exists($fileName) && time() - filemtime($fileName) < $this->arrConfig["cache"]["ttl"] ) {
+            $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
             return $this;
         }
 
@@ -132,14 +146,31 @@ class ChromeHeadless
 
         $baseDir = dirname($fileName);
         if( !is_dir($baseDir) ) {
-            mkdir($baseDir);
+            mkdir($baseDir, 0777, true);
         }
 
-        $this->page->pdf([
-            'printBackground' => $this->arrConfig["pdf"]["printBackground"]
-        ])->saveToFile($fileName);
+        $this->page->pdf($this->arrConfig["pdf"]["browser"])->saveToFile($fileName);
+
+        $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
 
         return $this;
+    }
+
+
+    public function getLastPdfPathOnDisk() : ?string
+    {
+        $path = $this->arrConfig["pdf"]["lastPdfPath"];
+        if( empty($path) ) {
+            return null;
+        }
+
+        return $path;
+    }
+
+
+    public function getBrowser() : Browser
+    {
+        return $this->browser;
     }
 
 
@@ -195,7 +226,7 @@ class ChromeHeadless
             $message .= ' [' . $statusCode . ']';
         }
 
-        $this->logger->log($message);
+        $this->logger->info($message);
         return $this;
     }
 }
