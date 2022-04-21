@@ -16,12 +16,17 @@ class ChromeHeadless
 {
     protected array $arrConfig = [
         "browser"   => [
-            'windowSize'                => [1920, 1000],
+            'windowSize'                => [1920, 1080],
             'ignoreCertificateErrors'   => true,
             'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
         ],
         "cache"     => [
             "ttl"   => 60 * 60
+        ],
+        "pdf"       => [
+            "outDirFullPath"    => "var/pdf/",
+            "autoext"           => true,
+            "printBackground"   => true,
         ]
     ];
     protected Browser $browser;
@@ -98,10 +103,17 @@ class ChromeHeadless
     }
 
 
-
-    public function browseToPdf(string $url, string $pdfPath, bool $printBackground = true) : self
+    public function browseToPdf(string $url, string $fileName) : self
     {
-        if( file_exists($pdfPath) && time() - filemtime($pdfPath) < $this->arrConfig["cache"]["ttl"] ) {
+        if( $this->arrConfig["pdf"]["autoext"] && substr(0, -4, $fileName) != '.pdf') {
+            $fileName .= ".pdf";
+        }
+
+        if( substr(0, 1, $fileName) != DIRECTORY_SEPARATOR ) {
+            $fileName = $this->arrConfig["pdf"]["outDirFullPath"] . $fileName;
+        }
+
+        if( file_exists($fileName) && time() - filemtime($fileName) < $this->arrConfig["cache"]["ttl"] ) {
             return $this;
         }
 
@@ -118,7 +130,14 @@ class ChromeHeadless
             return $this;
         }
 
-        $this->page->pdf(['printBackground' => $printBackground])->saveToFile($pdfPath);
+        $baseDir = basename($fileName);
+        if( !is_dir($baseDir) ) {
+            mkdir($baseDir);
+        }
+
+        $this->page->pdf([
+            'printBackground' => $this->arrConfig["pdf"]["printBackground"]
+        ])->saveToFile($fileName);
 
         return $this;
     }
