@@ -105,11 +105,11 @@ class ChromeHeadless
 
     public function browseToPdf(string $url, string $fileName) : self
     {
-        if( $this->arrConfig["pdf"]["autoext"] && substr(0, -4, $fileName) != '.pdf') {
+        if( $this->arrConfig["pdf"]["autoext"] && substr($fileName, -4) != '.pdf') {
             $fileName .= ".pdf";
         }
 
-        if( substr(0, 1, $fileName) != DIRECTORY_SEPARATOR ) {
+        if( $fileName[0] != DIRECTORY_SEPARATOR ) {
             $fileName = $this->arrConfig["pdf"]["outDirFullPath"] . $fileName;
         }
 
@@ -130,7 +130,7 @@ class ChromeHeadless
             return $this;
         }
 
-        $baseDir = basename($fileName);
+        $baseDir = dirname($fileName);
         if( !is_dir($baseDir) ) {
             mkdir($baseDir);
         }
