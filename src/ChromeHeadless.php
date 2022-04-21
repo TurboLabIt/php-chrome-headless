@@ -14,28 +14,35 @@ use Psr\Log\LoggerInterface;
 
 class ChromeHeadless
 {
+    protected array $arrConfig = [
+        "browser"   => [
+            'windowSize'                => [1920, 1000],
+            'ignoreCertificateErrors'   => true,
+            'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
+        ],
+        "cache"     => [
+            "ttl"   => 60 * 60
+        ]
+    ];
+    protected Browser $browser;
     protected ?LoggerInterface $logger;
     protected ?AdapterInterface $cache;
-    protected int $cacheTtl;
-
-    protected Browser $browser;
 
     protected Page $page;
     protected int $statusCode = -1;
     protected string $statusText = '';
 
 
-    public function __construct(?BrowserFactory $browserFactory = null, string $cmdName = 'google-chrome', ?LoggerInterface $logger = null, ?AdapterInterface $cache = null, ?int $cacheTtl = null)
+    public function __construct(
+        array $arrConfig = [],
+        ?BrowserFactory $browserFactory = null, string $cmdName = 'google-chrome',
+        ?LoggerInterface $logger = null, ?AdapterInterface $cache = null)
     {
+        $this->arrConfig    = array_replace_recursive($this->arrConfig, $arrConfig);
         $browserFactory     = $browserFactory ?? (new BrowserFactory($cmdName));
-        $this->browser      = $browserFactory->createBrowser([
-            'windowSize'                => [1920, 1000],
-            'ignoreCertificateErrors'   => true,
-            'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
-        ]);
+        $this->browser      = $browserFactory->createBrowser($this->arrConfig["browser"]);
         $this->logger       = $logger;
         $this->cache        = $cache;
-        $this->cacheTtl     = $cacheTtl === null ? 60 * 60 : $cacheTtl;
     }
 
 
@@ -56,7 +63,7 @@ class ChromeHeadless
             $this->log("browseAndCache", "Page wasn't cached, running a live request now", $url);
             $this->browse($url);
             $this->log("browseAndCache", "Back to cache management", $url);
-            $item->expiresAfter($this->cacheTtl);
+            $item->expiresAfter($this->arrConfig["cache"]["ttl"]);
         });
 
         return $this;
@@ -94,7 +101,7 @@ class ChromeHeadless
 
     public function browseToPdf(string $url, string $pdfPath, bool $printBackground = true) : self
     {
-        if( file_exists($pdfPath) && time() - filemtime($pdfPath) < $this->cacheTtl ) {
+        if( file_exists($pdfPath) && time() - filemtime($pdfPath) < $this->arrConfig["cache"]["ttl"] ) {
             return $this;
         }
 
