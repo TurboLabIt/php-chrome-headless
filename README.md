@@ -29,6 +29,17 @@ composer require turbolabit/php-chrome-headless:dev-main
 See: [ChromeHeadlessTest](https://github.com/TurboLabIt/php-chrome-headless/blob/main/tests/ChromeHeadlessTest.php#L33)
 
 
+## 🕸 4. HTML to PDF
+
+````php
+<?php
+ 
+?>
+````
+
+See: [ChromeHeadlessTest](https://github.com/TurboLabIt/php-chrome-headless/blob/main/tests/ChromeHeadlessTest.php#L52)
+
+
 ## 🧪 Test it
 
 ````bash
