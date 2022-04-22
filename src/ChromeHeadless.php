@@ -130,16 +130,9 @@ class ChromeHeadless
             $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
             return $this;
         }
-
-        if( empty($this->cache) ) {
-
-            $this->browse($url);
-
-        } else {
-
-            $this->browseAndCache($url);
-        }
-
+        
+        $this->browse($url);
+        
         if( $this->isResponseError() ) {
             return $this;
         }
