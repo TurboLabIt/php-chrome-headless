@@ -23,8 +23,15 @@ composer require turbolabit/php-chrome-headless:dev-main
 
 ````yaml
 # config/services.yaml
+TurboLabIt\ChromeHeadless\ChromeHeadless:
+  arguments:
+    $arrConfig:
+      pdf:
+        outDirFullPath: '%kernel.project_dir%/var/pdf/'
 
 ````
+
+See: [services.yaml](https://github.com/TurboLabIt/php-chrome-headless/blob/main/src/Resources/config/services.yaml)
 
 
 ## 🕸 4. Scrape a page
