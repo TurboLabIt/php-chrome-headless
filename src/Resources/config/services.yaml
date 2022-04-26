@@ -1,0 +1,6 @@
+services:
+  TurboLabIt\ChromeHeadless\ChromeHeadless:
+    arguments:
+      $arrConfig:
+        pdf:
+          outDirFullPath: '%kernel.project_dir%/var/pdf/'
