@@ -9,6 +9,7 @@ sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt
 
 ````
 
+
 ## 📦 2. Install the package with composer
 
 ````bash
@@ -18,7 +19,15 @@ composer require turbolabit/php-chrome-headless:dev-main
 ````
 
 
-## 🕸 3. Scrape a page
+## 3. ⚙️ Symfony custom configuration (optional)
+
+````yaml
+# config/services.yaml
+
+````
+
+
+## 🕸 4. Scrape a page
 
 ````php
 <?php
@@ -29,7 +38,7 @@ composer require turbolabit/php-chrome-headless:dev-main
 See: [ChromeHeadlessTest](https://github.com/TurboLabIt/php-chrome-headless/blob/main/tests/ChromeHeadlessTest.php#L33)
 
 
-## 🕸 4. HTML to PDF
+## 🕸 5. HTML to PDF
 
 ````php
 <?php
