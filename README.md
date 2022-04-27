@@ -9,6 +9,8 @@ sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt
 
 ````
 
+See: [webstackup/script/chrome/](https://github.com/TurboLabIt/webstackup/tree/master/script/chrome)
+
 
 ## 📦 2. Install the package with composer
 
