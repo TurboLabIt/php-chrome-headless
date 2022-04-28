@@ -18,8 +18,7 @@ class ChromeHeadless
         "browser"   => [
             'windowSize'                => [1920, 1080],
             'ignoreCertificateErrors'   => true,
-            'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36',
-            'sendSyncDefaultTimeout'    => 15000 
+            'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
         ],
         "cache"     => [
             "ttl"   => 60 * 60
@@ -131,9 +130,9 @@ class ChromeHeadless
             $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
             return $this;
         }
-        
+
         $this->browse($url);
-        
+
         if( $this->isResponseError() ) {
             return $this;
         }
