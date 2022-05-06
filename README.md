@@ -24,13 +24,13 @@ composer require turbolabit/php-chrome-headless:dev-main
 ## 3. ⚙️ Symfony custom configuration (optional)
 
 ````yaml
-# config/services.yaml
-TurboLabIt\ChromeHeadless\ChromeHeadless:
-  arguments:
-    $arrConfig:
-      pdf:
-        outDirFullPath: '%kernel.project_dir%/var/pdf/'
-
+# config/chromeheadless.yaml
+turbo_lab_it_chrome_headless:
+  $arrConfig:
+    pdf:
+      browser:
+        marginTop: 1.5
+        marginBottom: 1.5
 ````
 
 See: [services.yaml](https://github.com/TurboLabIt/php-chrome-headless/blob/main/src/Resources/config/services.yaml)
