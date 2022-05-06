@@ -26,15 +26,16 @@ class ChromeHeadless
 
 
     public function __construct(
-        array $arrConfig = [],
-        ?BrowserFactory $browserFactory = null, string $cmdName = 'google-chrome',
-        ?LoggerInterface $logger = null, ?AdapterInterface $cache = null)
+        array $arrConfig,
+        ?LoggerInterface $logger, ?AdapterInterface $cache,
+        ?BrowserFactory $browserFactory = null
+    )
     {
         $this->arrConfig    = $arrConfig;
-        $browserFactory     = $browserFactory ?? (new BrowserFactory($cmdName));
-        $this->browser      = $browserFactory->createBrowser($this->arrConfig["browser"]);
         $this->logger       = $logger;
         $this->cache        = $cache;
+        $browserFactory     = $browserFactory ?? (new BrowserFactory($arrConfig["chrome-exe"]));
+        $this->browser      = $browserFactory->createBrowser($this->arrConfig["browser"]);
     }
 
 
@@ -71,6 +72,11 @@ class ChromeHeadless
     public function browse(string $url) : self
     {
         $this->log("browse", "Ready to browse with Chrome Headless", $url);
+
+        // reset
+        $this->statusCode   = -1;
+        $this->statusText   = '';
+
         $this->page = $this->browser->createPage();
 
         // https://github.com/chrome-php/chrome/issues/41#issuecomment-447047235
@@ -83,9 +89,14 @@ class ChromeHeadless
 
         $this->page->navigate($url)->waitForNavigation();
 
+        if( $this->statusCode == "-1" && empty($this->statusText) ) {
+            $this->statusText = "FAILURE! Unable to connect to ##" . $url . "## Network error or domain unresolvable!";
+        }
+
         if( $this->isResponseError() ) {
 
             $this->log("browse", "Browsing KO: ##" . $this->statusText . "##", $url, $this->statusCode);
+            throw new ChromeHeadlessException($this->statusText);
 
         } else {
 
@@ -122,7 +133,7 @@ class ChromeHeadless
             mkdir($baseDir, 0777, true);
         }
 
-        $this->page->pdf($this->arrConfig["pdf"]["browser"])->saveToFile($fileName);
+        $this->page->pdf($this->arrConfig["pdf"]["browser"])->saveToFile($fileName, $this->arrConfig["pdf"]["timeout"]);
 
         $this->lastPdfPath = $fileName;
 
@@ -174,7 +185,7 @@ class ChromeHeadless
 
     public function isResponseError() : bool
     {
-        return $this->statusCode >= 400;
+        return $this->statusCode == -1 || $this->statusCode >= 400;
     }
 
 

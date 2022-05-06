@@ -1,7 +1,9 @@
 services:
   TurboLabIt\ChromeHeadless\ChromeHeadless:
+    autowire: true
     arguments:
       $arrConfig:
+        chrome-exe: 'google-chrome'
         browser:
           windowSize:
             - 1920
@@ -13,6 +15,7 @@ services:
         pdf:
           outDirFullPath: '%kernel.project_dir%/var/pdf/'
           autoext: true
+          timeout: 15000
           browser:
             printBackground: true
             marginTop: 0
