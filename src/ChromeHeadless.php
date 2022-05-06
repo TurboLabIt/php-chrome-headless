@@ -14,35 +14,15 @@ use Psr\Log\LoggerInterface;
 
 class ChromeHeadless
 {
-    protected array $arrConfig = [
-        "browser"   => [
-            'windowSize'                => [1920, 1080],
-            'ignoreCertificateErrors'   => true,
-            'userAgent'                 => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
-        ],
-        "cache"     => [
-            "ttl"   => 60 * 60
-        ],
-        "pdf"       => [
-            "outDirFullPath"    => "/tmp/",
-            "autoext"           => true,
-            "lastPdfPath"       => '',
-            "browser"           => [
-                "printBackground"   => true,
-                "marginTop"         => 0,
-                "marginBottom"      => 0,
-                "marginLeft"        => 0,
-                "marginRight"       => 0
-            ]
-        ]
-    ];
+    protected array $arrConfig;
     protected Browser $browser;
     protected ?LoggerInterface $logger;
     protected ?AdapterInterface $cache;
 
     protected Page $page;
-    protected int $statusCode = -1;
-    protected string $statusText = '';
+    protected int $statusCode       = -1;
+    protected string $statusText    = '';
+    protected ?string $lastPdfPath  = null;
 
 
     public function __construct(
@@ -50,7 +30,7 @@ class ChromeHeadless
         ?BrowserFactory $browserFactory = null, string $cmdName = 'google-chrome',
         ?LoggerInterface $logger = null, ?AdapterInterface $cache = null)
     {
-        $this->arrConfig    = array_replace_recursive($this->arrConfig, $arrConfig);
+        $this->arrConfig    = $arrConfig;
         $browserFactory     = $browserFactory ?? (new BrowserFactory($cmdName));
         $this->browser      = $browserFactory->createBrowser($this->arrConfig["browser"]);
         $this->logger       = $logger;
@@ -127,12 +107,12 @@ class ChromeHeadless
         }
 
         if( file_exists($fileName) && time() - filemtime($fileName) < $this->arrConfig["cache"]["ttl"] ) {
-            $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
+            $this->lastPdfPath = $fileName;
             return $this;
         }
-        
+
         $this->browse($url);
-        
+
         if( $this->isResponseError() ) {
             return $this;
         }
@@ -144,7 +124,7 @@ class ChromeHeadless
 
         $this->page->pdf($this->arrConfig["pdf"]["browser"])->saveToFile($fileName);
 
-        $this->arrConfig["pdf"]["lastPdfPath"] = $fileName;
+        $this->lastPdfPath = $fileName;
 
         return $this;
     }
@@ -152,12 +132,7 @@ class ChromeHeadless
 
     public function getLastPdfPathOnDisk() : ?string
     {
-        $path = $this->arrConfig["pdf"]["lastPdfPath"];
-        if( empty($path) ) {
-            return null;
-        }
-
-        return $path;
+        return $this->lastPdfPath;
     }
 
 
