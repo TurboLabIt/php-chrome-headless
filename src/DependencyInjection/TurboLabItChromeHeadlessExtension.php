@@ -13,5 +13,13 @@ class TurboLabItChromeHeadlessExtension extends Extension
     {
         $loader = new YamlFileLoader($container, new FileLocator(dirname(__DIR__).'/Resources/config'));
         $loader->load('services.yaml');
+
+        $serviceDefinition  = $container->getDefinition('TurboLabIt\ChromeHeadless\ChromeHeadless');
+
+        $arrDefaultConfig   = $serviceDefinition->getArgument('$arrConfig');
+        $arrCustomConfig    = $configs[0]['$arrConfig'];
+        $arrFinalConfig     = array_replace_recursive($arrDefaultConfig, $arrCustomConfig);
+
+        $serviceDefinition->replaceArgument('$arrConfig', $arrFinalConfig);
     }
 }
