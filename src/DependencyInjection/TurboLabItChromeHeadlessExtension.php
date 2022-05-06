@@ -20,6 +20,6 @@ class TurboLabItChromeHeadlessExtension extends Extension
         $arrCustomConfig    = $configs[0]['$arrConfig'];
         $arrFinalConfig     = array_replace_recursive($arrDefaultConfig, $arrCustomConfig);
 
-        //$serviceDefinition->replaceArgument('$arrConfig', $arrFinalConfig);
+        $serviceDefinition->replaceArgument('$arrConfig', $arrFinalConfig);
     }
 }
