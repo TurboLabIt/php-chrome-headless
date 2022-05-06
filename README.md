@@ -24,7 +24,7 @@ composer require turbolabit/php-chrome-headless:dev-main
 ## 3. ⚙️ Symfony custom configuration (optional)
 
 ````yaml
-# config/chromeheadless.yaml
+# config/packages/chromeheadless.yaml
 turbo_lab_it_chrome_headless:
   $arrConfig:
     pdf:
