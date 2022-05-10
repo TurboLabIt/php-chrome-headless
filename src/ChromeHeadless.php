@@ -134,8 +134,9 @@ class ChromeHeadless
         }
 
         $this->page->pdf($this->arrConfig["pdf"]["browser"])->saveToFile($fileName, $this->arrConfig["pdf"]["timeout"]);
-
         $this->lastPdfPath = $fileName;
+
+        $this->pdfCompress($fileName);
 
         return $this;
     }
@@ -144,6 +145,48 @@ class ChromeHeadless
     public function getLastPdfPathOnDisk() : ?string
     {
         return $this->lastPdfPath;
+    }
+
+
+    public function pdfCompress(string $originalPdfPath) : self
+    {
+        if( empty($this->arrConfig["pdf"]["compression"]) ) {
+            return $this;
+        }
+
+        $compressedPdfPath = $originalPdfPath . "_compressed.pdf";
+
+        // https://www.adobe.com/acrobat/hub/how-to/how-to-compress-pdf-in-linux
+        $cmd = 'gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/' . $this->arrConfig["pdf"]["compression"] .
+                    ' -dNOPAUSE -dQUIET -dBATCH -sOutputFile="' . $compressedPdfPath . '" "' . $originalPdfPath . '"';
+
+        if( file_exists($compressedPdfPath) ) {
+            unlink($compressedPdfPath);
+        }
+
+        $arrOutput  = [];
+        $exitCode   = null;
+        $exeResult  = exec($cmd, $arrOutput, $exitCode);
+
+        if($exeResult === false) {
+            $txtOutput = implode(PHP_EOL, $arrOutput);
+            throw new ChromeHeadlessException("PDF compression FAILED! " . $txtOutput);
+        }
+
+        $originalPdfPathFileSize    = filesize($originalPdfPath);
+        $compressedPdfFileSize      = filesize($compressedPdfPath);
+
+        if( $compressedPdfFileSize < $originalPdfPathFileSize ) {
+
+            unlink($originalPdfPath);
+            rename($compressedPdfPath, $originalPdfPath);
+
+        } else {
+
+            unlink($compressedPdfPath);
+        }
+
+        return $this;
     }
 
 
