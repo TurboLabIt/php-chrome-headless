@@ -15,7 +15,7 @@ See: [webstackup/script/chrome/](https://github.com/TurboLabIt/webstackup/tree/m
 ## 📦 2. Install the package with composer
 
 ````bash
-composer config repositories.TurboLabIt/php-chrome-headless git https://github.com/TurboLabIt/php-chrome-headless.git
+composer config repositories.turbolabit/php-chrome-headless git https://github.com/TurboLabIt/php-chrome-headless.git
 composer require turbolabit/php-chrome-headless:dev-main
 
 ````
