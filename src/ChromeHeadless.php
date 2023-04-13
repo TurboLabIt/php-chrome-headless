@@ -168,7 +168,12 @@ class ChromeHeadless
         $exitCode   = null;
         $exeResult  = exec($cmd, $arrOutput, $exitCode);
 
-        if($exeResult === false) {
+        // if ghostscript is not installed, we get an error code, but no output is captured (???)
+        if( $exitCode == 127 && empty($arrOutput) ) {
+            $arrOutput[] = "Command 'gs' not found, but can be installed with 'ghostscript'";
+        }
+
+        if( $exitCode != 0 ) {
             $txtOutput = implode(PHP_EOL, $arrOutput);
             throw new ChromeHeadlessException("PDF compression FAILED! " . $txtOutput);
         }
