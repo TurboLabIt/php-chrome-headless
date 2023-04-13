@@ -12,7 +12,19 @@ sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt
 See: [webstackup/script/chrome/](https://github.com/TurboLabIt/webstackup/tree/master/script/chrome)
 
 
-## 📦 2. Install the package with composer
+## 💿 2. (optional) Install PDF Support
+
+If you want to use Chrome to generate PDFs, you also need this:
+
+````bash
+sudo apt install curl -y && curl -s https://raw.githubusercontent.com/TurboLabIt/webstackup/master/script/print/install-pdf.sh?$(date +%s) | sudo bash
+
+````
+
+See: [webstackup/script/print/](https://github.com/TurboLabIt/webstackup/blob/master/script/print)
+
+
+## 📦 3. Install the package with composer
 
 ````bash
 composer config repositories.turbolabit/php-chrome-headless git https://github.com/TurboLabIt/php-chrome-headless.git
@@ -21,7 +33,7 @@ composer require turbolabit/php-chrome-headless:dev-main
 ````
 
 
-## 3. ⚙️ Symfony custom configuration (optional)
+## 4. ⚙️ Symfony custom configuration (optional)
 
 ````yaml
 # config/packages/chromeheadless.yaml
